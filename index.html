@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prototype SaaS Marketing IA Futuriste</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+/* --- Reset & Fonts --- */
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+body { background: #0e0f14; color: #fff; padding: 20px; }
+
+/* --- Headers --- */
+h1 { text-align:center; margin-bottom: 20px; font-weight:600; color:#00ffea; }
+h2 { margin-top: 30px; color:#00ffd5; }
+
+/* --- Dashboard & Cards --- */
+.dashboard { display:flex; flex-wrap:wrap; gap:20px; margin-top:20px; justify-content:center; }
+.card { background: linear-gradient(135deg,#1f1f2b,#2b2b3d); padding:15px; border-radius:15px; width:300px; box-shadow:0 8px 20px rgba(0,255,234,0.3); transition: transform 0.3s; }
+.card:hover { transform: translateY(-5px); }
+.card img { border-radius:10px; margin-top:10px; width:100%; }
+
+/* --- Inputs & Buttons --- */
+input, button { padding:10px; margin-top:10px; width:100%; border-radius:8px; border:none; outline:none; }
+input { background:#1a1b26; color:#fff; }
+button { background: #00ffea; color:#0e0f14; font-weight:600; cursor:pointer; transition:0.3s; }
+button:hover { background:#00ffd5; }
+
+/* --- Form & Channels --- */
+.form-channels { margin-top:10px; display:flex; gap:10px; flex-wrap:wrap; }
+.form-channels label { cursor:pointer; display:flex; align-items:center; gap:5px; }
+input[type="checkbox"] { width:auto; }
+
+/* --- Notifications --- */
+.notification { position:fixed; top:20px; right:20px; padding:15px 20px; border-radius:10px; background:#00ffea; color:#0e0f14; font-weight:600; display:none; box-shadow:0 5px 15px rgba(0,255,234,0.4); }
+.notification.alert { background:#ff006e; color:#fff; }
+
+/* --- Canvas Graph --- */
+canvas { background:#1a1b26; border-radius:15px; margin-top:20px; padding:10px; }
+</style>
+</head>
+<body>
+
+<h1>Prototype SaaS Marketing IA Futuriste</h1>
+
+<div class="card" style="max-width:500px; margin:auto;">
+  <h2>Créer une campagne</h2>
+  <input id="title" placeholder="Titre de la campagne">
+  <input id="promptText" placeholder="Prompt texte IA">
+  <input id="promptImage" placeholder="Prompt image IA">
+  <input id="recipients" placeholder="Emails/SMS (séparés par ,)">
+  <div class="form-channels">
+    <label><input type="checkbox" id="chEmail">Email</label>
+    <label><input type="checkbox" id="chInstagram">Instagram</label>
+    <label><input type="checkbox" id="chTikTok">TikTok</label>
+    <label><input type="checkbox" id="chSMS">SMS</label>
+  </div>
+  <button onclick="createCampaign()">Créer campagne</button>
+</div>
+
+<h2>Campagnes</h2>
+<div class="dashboard" id="campaigns"></div>
+
+<h2>Graphiques KPI</h2>
+<canvas id="kpiChart" width="800" height="300"></canvas>
+
+<div id="notification" class="notification"></div>
+
+<script>
+let campaignsData = [];
+
+// --- Notifications ---
+function showNotification(msg, isAlert=false){
+  const n = document.getElementById('notification');
+  n.textContent = msg;
+  n.className = 'notification' + (isAlert?' alert':'');
+  n.style.display='block';
+  setTimeout(()=>{ n.style.display='none'; },2500);
+}
+
+// --- Création campagne ---
+function createCampaign(){
+  const title = document.getElementById('title').value || 'Campagne IA';
+  const text = document.getElementById('promptText').value || 'Texte IA généré automatiquement';
+  const randomId = Math.floor(Math.random()*1000);
+  const image = `https://picsum.photos/seed/${randomId}/300/200`;
+  const recipients = document.getElementById('recipients').value.split(',').map(r=>r.trim()).filter(r=>r);
+
+  const channels = [];
+  if(document.getElementById('chEmail').checked) channels.push('Email');
+  if(document.getElementById('chInstagram').checked) channels.push('Instagram');
+  if(document.getElementById('chTikTok').checked) channels.push('TikTok');
+  if(document.getElementById('chSMS').checked) channels.push('SMS');
+
+  const ctr = Math.floor(Math.random()*50);
+  const conversions = Math.floor(Math.random()*20);
+  const roi = Math.floor(Math.random()*300);
+
+  campaignsData.push({title,text,image,channels,recipients,ctr,conversions,roi});
+  renderCampaigns();
+
+  channels.forEach(c=> showNotification(`Campagne "${title}" envoyée sur ${c}`));
+  if(ctr<20) showNotification(`⚠️ Alerte IA : CTR faible (${ctr}%)`, true);
+}
+
+// --- Affichage campagnes ---
+function renderCampaigns(){
+  const container = document.getElementById('campaigns');
+  container.innerHTML='';
+  campaignsData.forEach(c=>{
+    const card = document.createElement('div');
+    card.className='card';
+    card.innerHTML=`
+      <h3>${c.title}</h3>
+      <p>${c.text}</p>
+      <img src="${c.image}">
+      <p><strong>Canaux:</strong> ${c.channels.join(', ')}</p>
+      <p>CTR: ${c.ctr}% | Conversions: ${c.conversions} | ROI: ${c.roi}%</p>
+    `;
+    container.appendChild(card);
+  });
+  renderChart();
+}
+
+// --- Graphiques KPI ---
+function renderChart(){
+  const ctx = document.getElementById('kpiChart').getContext('2d');
+  if(window.kpiChartInstance) window.kpiChartInstance.destroy();
+  window.kpiChartInstance = new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels: campaignsData.map(c=>c.title),
+      datasets:[
+        {label:'CTR', data:campaignsData.map(c=>c.ctr), backgroundColor:'rgba(0,255,234,0.7)'},
+        {label:'Conversions', data:campaignsData.map(c=>c.conversions), backgroundColor:'rgba(255,0,110,0.7)'},
+        {label:'ROI', data:campaignsData.map(c=>c.roi), backgroundColor:'rgba(0,191,255,0.7)'}
+      ]
+    },
+    options:{responsive:true, plugins:{legend:{position:'top'}}}
+  });
+}
+
+renderCampaigns();
+</script>
+</body>
+</html>
